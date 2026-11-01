@@ -1,3 +1,4 @@
+import 'tint.dart';
 import 'meta.dart';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
@@ -73,6 +74,7 @@ class Player {
 
   /// Spotify-style radio: start from one song, the rest is picked for you
   Future<void> radio(SongModel s) async {
+    await AutoQueue.prepare(s);
     final more = AutoQueue.pick(s, all, {s.id}, 20);
     await play([s, ...more], 0);
   }
@@ -106,6 +108,7 @@ class Player {
     _lastIdx = idx;
     _started = DateTime.now();
     current.value = queue[idx];
+    Tint.of(queue[idx]).then((c) { if (c != null && current.value?.id == queue[idx].id) current.notifyListeners(); });
     _maybeExtend(idx);
   }
 
@@ -113,6 +116,7 @@ class Player {
     if (!autoQueue.value || loop.value != LoopMode.off || _extending || _src == null) return;
     if (idx < queue.length - 2) return;
     _extending = true;
+    await AutoQueue.prepare(queue[idx]);
     final more = AutoQueue.pick(queue[idx], all, queue.map((s) => s.id).toSet(), 15);
     if (more.isNotEmpty) {
       queue = [...queue, ...more];

@@ -1,3 +1,4 @@
+import 'core/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio_background/just_audio_background.dart';
 import 'core/lyrics.dart';
@@ -16,6 +17,7 @@ Future<void> main() async {
     androidNotificationChannelName: 'Playback',
     androidNotificationOngoing: true,
   );
+  await Settings.load();
   await Repo.i.load();
   await Lyrics.load();
   runApp(const TunrApp());

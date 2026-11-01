@@ -1,3 +1,6 @@
+import '../core/tint.dart';
+import '../core/art_store.dart';
+import 'dart:io';
 import '../core/meta.dart';
 import 'package:flutter/material.dart';
 import 'package:on_audio_query/on_audio_query.dart';
@@ -8,7 +11,7 @@ import 'playlists.dart';
 import 'theme.dart';
 
 Color tintFor(SongModel s) =>
-    HSLColor.fromAHSL(1, (s.title.hashCode.abs() % 360).toDouble(), .45, .22).toColor();
+    Tint.peek(s) ?? HSLColor.fromAHSL(1, (s.title.hashCode.abs() % 360).toDouble(), .45, .22).toColor();
 
 Widget fallbackArt(SongModel s) {
   final h = (s.title.hashCode.abs() % 360).toDouble();
@@ -49,7 +52,7 @@ class Art extends StatelessWidget {
             artworkFit: BoxFit.cover,
             artworkBorder: BorderRadius.zero,
             keepOldArtwork: true,
-            nullArtworkWidget: fallbackArt(s),
+            nullArtworkWidget: CachedArt(s, size: size),
           ),
         ),
       );
@@ -187,5 +190,19 @@ class MiniPlayer extends StatelessWidget {
             ),
           );
         },
+      );
+}
+
+class CachedArt extends StatelessWidget {
+  final SongModel s;
+  final double size;
+  const CachedArt(this.s, {required this.size, super.key});
+
+  @override
+  Widget build(BuildContext c) => FutureBuilder<File?>(
+        future: ArtStore.get(s),
+        builder: (_, sn) => sn.data == null
+            ? fallbackArt(s)
+            : Image.file(sn.data!, width: size, height: size, fit: BoxFit.cover),
       );
 }

@@ -1,3 +1,5 @@
+import 'meta.dart';
+import 'net.dart';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -27,13 +29,13 @@ class Lyrics {
   static Future<String?> fetch(SongModel s) async {
     final cached = await Repo.i.getLyrics(s.id);
     if (cached != null) return cached.isEmpty ? null : cached;
-    final artist = s.artist ?? '';
-    if (artist.isEmpty || artist == '<unknown>') return null;
+    final artist = artistOf(s);
+    if (!await Net.allowed()) return null;
+    if (artist == "Unknown artist") return null;
     try {
       final params = {
-        'track_name': s.title,
+        'track_name': cleanTitle(s),
         'artist_name': artist,
-        if (s.album != null && s.album!.isNotEmpty) 'album_name': s.album!,
         'duration': '${(s.duration ?? 0) ~/ 1000}',
       };
       final r = await http
