@@ -33,7 +33,7 @@ class Tint {
       }
       final base = Color.fromARGB(255, (r / w).round(), (g / w).round(), (bl / w).round());
       final hsl = HSLColor.fromColor(base);
-      final out = HSLColor.fromAHSL(1, hsl.hue, hsl.saturation.clamp(.35, .75).toDouble(), .3).toColor();
+      final out = hsl.saturation < .12 ? const Color(0xFF2A2A2A) : HSLColor.fromAHSL(1, hsl.hue, hsl.saturation.clamp(.35, .75).toDouble(), .3).toColor();
       return _c[s.id] = out;
     } catch (_) {
       return null;
