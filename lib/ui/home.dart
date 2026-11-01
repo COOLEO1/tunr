@@ -1,9 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:on_audio_query/on_audio_query.dart';
+import '../core/meta.dart';
 import '../core/player.dart';
 import '../data/repo.dart';
 import 'theme.dart';
 import 'widgets.dart';
+
+const _h = TextStyle(fontSize: 20, fontWeight: FontWeight.w700);
+
+List<Widget> _songRow(String title, List<SongModel> list) {
+  if (list.isEmpty) return [];
+  return [
+    const SizedBox(height: 28),
+    Text(title, style: _h),
+    const SizedBox(height: 12),
+    SizedBox(
+      height: 190,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: list.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 14),
+        itemBuilder: (_, i) {
+          final s = list[i];
+          return GestureDetector(
+            onTap: () => Player.i.radio(s),
+            child: SizedBox(
+              width: 130,
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Art(s, size: 130, r: 10),
+                const SizedBox(height: 8),
+                Text(cleanTitle(s), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w600)),
+                Text(artistOf(s), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+              ]),
+            ),
+          );
+        },
+      ),
+    ),
+  ];
+}
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -19,45 +54,53 @@ class HomePage extends StatelessWidget {
         builder: (_, __, ___) {
           final entries = Repo.i.stats.entries.toList()..sort((a, b) => b.value.last.compareTo(a.value.last));
           final recent = entries.take(12).map((e) => p.byId(e.key)).whereType<SongModel>().toList();
+          final added = [...p.all]..sort((a, b) => (b.dateAdded ?? 0).compareTo(a.dateAdded ?? 0));
+          final groups = <String, List<SongModel>>{};
+          for (final s in p.all) {
+            final a = artistOf(s);
+            if (a != 'Unknown artist') groups.putIfAbsent(a, () => []).add(s);
+          }
+          final artists = groups.entries.where((e) => e.value.length >= 2).toList()
+            ..sort((a, b) => b.value.length.compareTo(a.value.length));
           return ListView(padding: const EdgeInsets.all(20), children: [
             Text(greet, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
             const SizedBox(height: 16),
             FilledButton.icon(
-              style: FilledButton.styleFrom(backgroundColor: accent, padding: const EdgeInsets.symmetric(vertical: 14)),
+              style: FilledButton.styleFrom(backgroundColor: accent, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 14)),
               onPressed: p.shuffleAll,
               icon: const Icon(Icons.shuffle),
               label: Text('Shuffle all (${p.all.length})'),
             ),
-            const SizedBox(height: 28),
-            if (recent.isNotEmpty) ...[
-              const Text('Jump back in', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+            ..._songRow('Jump back in', recent),
+            ..._songRow('Recently added', added.take(15).toList()),
+            if (artists.isNotEmpty) ...[
+              const SizedBox(height: 28),
+              const Text('Your artists', style: _h),
               const SizedBox(height: 12),
               SizedBox(
-                height: 190,
+                height: 150,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
-                  itemCount: recent.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 14),
+                  itemCount: artists.take(12).length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 16),
                   itemBuilder: (_, i) {
-                    final s = recent[i];
+                    final e = artists[i];
                     return GestureDetector(
-                      onTap: () => p.radio(s),
+                      onTap: () => p.play([...e.value]..shuffle(), 0),
                       child: SizedBox(
-                        width: 130,
-                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Art(s, size: 130, r: 10),
+                        width: 100,
+                        child: Column(children: [
+                          Art(e.value.first, size: 100, r: 50),
                           const SizedBox(height: 8),
-                          Text(s.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w600)),
-                          Text(s.artist ?? 'Unknown',
-                              maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                          Text(e.key, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w600)),
+                          Text('${e.value.length} songs', style: const TextStyle(color: Colors.white54, fontSize: 12)),
                         ]),
                       ),
                     );
                   },
                 ),
               ),
-            ] else
-              const Text('Play a few songs and your history shows up here.', style: TextStyle(color: Colors.white54)),
+            ],
           ]);
         },
       ),

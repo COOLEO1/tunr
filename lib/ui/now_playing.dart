@@ -1,3 +1,4 @@
+import '../core/meta.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
@@ -53,8 +54,8 @@ class NowPlaying extends StatelessWidget {
                   Row(children: [
                     Expanded(
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text(s.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
-                        Text(s.artist ?? 'Unknown', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white70, fontSize: 15)),
+                        Text(cleanTitle(s), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+                        Text(artistOf(s), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white70, fontSize: 15)),
                       ]),
                     ),
                     ValueListenableBuilder<Set<int>>(

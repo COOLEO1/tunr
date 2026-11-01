@@ -1,3 +1,4 @@
+import '../core/meta.dart';
 import 'package:flutter/material.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 import '../core/player.dart';
@@ -20,7 +21,7 @@ Widget fallbackArt(SongModel s) {
     alignment: Alignment.center,
     child: LayoutBuilder(
       builder: (_, bc) => Text(
-        s.title.isEmpty ? '♪' : s.title[0].toUpperCase(),
+        cleanTitle(s)[0].toUpperCase(),
         style: TextStyle(fontSize: bc.maxHeight * .45, fontWeight: FontWeight.w800, color: Colors.white70),
       ),
     ),
@@ -68,11 +69,11 @@ class SongTile extends StatelessWidget {
             onTap: onTap,
             onLongPress: () => songMenu(c, s),
             leading: Art(s),
-            title: Text(s.title,
+            title: Text(cleanTitle(s),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(color: on ? accent : Colors.white, fontWeight: FontWeight.w600)),
-            subtitle: Text(s.artist ?? 'Unknown',
+            subtitle: Text(artistOf(s),
                 maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white54)),
             trailing: IconButton(
                 icon: const Icon(Icons.more_vert, color: Colors.white54), onPressed: () => songMenu(c, s)),
@@ -89,8 +90,8 @@ void songMenu(BuildContext c, SongModel s) {
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         ListTile(
             leading: Art(s, size: 44),
-            title: Text(s.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-            subtitle: Text(s.artist ?? 'Unknown')),
+            title: Text(cleanTitle(s), maxLines: 1, overflow: TextOverflow.ellipsis),
+            subtitle: Text(artistOf(s))),
         const Divider(height: 1),
         ListTile(
             leading: const Icon(Icons.radio),
@@ -148,14 +149,15 @@ class MiniPlayer extends StatelessWidget {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(s.title,
+                      Text(cleanTitle(s),
                           maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700)),
-                      Text(s.artist ?? 'Unknown',
+                      Text(artistOf(s),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(color: Colors.white70, fontSize: 12)),
                     ]),
                   ),
+                  ValueListenableBuilder<Set<int>>(valueListenable: Repo.i.favs, builder: (_, f, __) => IconButton(icon: Icon(f.contains(s.id) ? Icons.favorite : Icons.favorite_border, color: f.contains(s.id) ? accent : Colors.white70), onPressed: () => Repo.i.toggleFav(s.id))),
                   StreamBuilder<bool>(
                     stream: Player.i.ap.playingStream,
                     builder: (_, sn) {

@@ -9,7 +9,7 @@ perms = '''<uses-permission android:name="android.permission.INTERNET"/>
     <application'''
 s = s.replace('<application', perms, 1)
 s = s.replace('android:name=".MainActivity"', 'android:name="com.ryanheise.audioservice.AudioServiceActivity"')
-svc = '''<service android:name="com.ryanheise.audioservice.AudioService" android:foregroundServiceType="mediaPlayback" android:exported="true">
+svc = '''<service android:name="com.ryanheise.audioservice.AudioService" android:foregroundServiceType="mediaPlayback" android:stopWithTask="true" android:exported="true">
             <intent-filter><action android:name="android.media.browse.MediaBrowserService"/></intent-filter>
         </service>
         <receiver android:name="com.ryanheise.audioservice.MediaButtonReceiver" android:exported="true">

@@ -1,3 +1,4 @@
+import 'meta.dart';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
@@ -52,8 +53,8 @@ class Player {
         Uri.parse(s.uri!),
         tag: MediaItem(
           id: '${s.id}',
-          title: s.title,
-          artist: s.artist ?? 'Unknown',
+          title: cleanTitle(s),
+          artist: artistOf(s),
           album: s.album,
           duration: Duration(milliseconds: s.duration ?? 0),
         ),
