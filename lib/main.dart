@@ -17,7 +17,7 @@ Future<void> main() async {
     androidNotificationChannelName: 'Playback',
     androidNotificationOngoing: true,
     androidNotificationIcon: 'drawable/ic_notif',
-    notificationColor: const Color(0xFF1DB954),
+    notificationColor: accent,
   );
   await Settings.load();
   await Repo.i.load();
@@ -68,14 +68,13 @@ class _ShellState extends State<Shell> {
           const MiniPlayer(),
           NavigationBar(
             backgroundColor: bg,
-            indicatorColor: Colors.transparent,
+            indicatorColor: accent.withOpacity(.13),
             selectedIndex: tab,
             onDestinationSelected: (i) => setState(() => tab = i),
             destinations: const [
-              NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Home'),
-              NavigationDestination(icon: Icon(Icons.search), label: 'Search'),
-              NavigationDestination(
-                  icon: Icon(Icons.library_music_outlined), selectedIcon: Icon(Icons.library_music), label: 'Library'),
+              NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home_rounded), label: 'Home'),
+              NavigationDestination(icon: Icon(Icons.search_rounded), label: 'Search'),
+              NavigationDestination(icon: Icon(Icons.library_music_outlined), selectedIcon: Icon(Icons.library_music), label: 'Library'),
             ],
           ),
         ]),

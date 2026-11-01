@@ -3,19 +3,20 @@ import 'package:on_audio_query/on_audio_query.dart';
 import '../core/meta.dart';
 import '../core/player.dart';
 import '../data/repo.dart';
+import 'ai_companion.dart';
 import 'ai_sheet.dart';
 import 'settings_page.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
-const _h = TextStyle(fontSize: 20, fontWeight: FontWeight.w700);
+const _h = TextStyle(fontSize: 19, fontWeight: FontWeight.w800, letterSpacing: -.2);
 
 List<Widget> _songRow(String title, List<SongModel> list) {
   if (list.isEmpty) return [];
   return [
     const SizedBox(height: 28),
     Text(title, style: _h),
-    const SizedBox(height: 12),
+    const SizedBox(height: 13),
     SizedBox(
       height: 190,
       child: ListView.separated(
@@ -27,12 +28,12 @@ List<Widget> _songRow(String title, List<SongModel> list) {
           return GestureDetector(
             onTap: () => Player.i.radio(s),
             child: SizedBox(
-              width: 130,
+              width: 132,
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Art(s, size: 130, r: 10),
-                const SizedBox(height: 8),
-                Text(cleanTitle(s), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w600)),
-                Text(artistOf(s), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                Art(s, size: 132, r: 13),
+                const SizedBox(height: 9),
+                Text(cleanTitle(s), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700)),
+                Text(artistOf(s), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: textMuted, fontSize: 12)),
               ]),
             ),
           );
@@ -51,13 +52,7 @@ class HomePage extends StatelessWidget {
     final h = DateTime.now().hour;
     final greet = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
     return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: const Alignment(0, -.2),
-          colors: [accent.withOpacity(.22), bg],
-        ),
-      ),
+      color: bg,
       child: SafeArea(
         child: ValueListenableBuilder<SongModel?>(
           valueListenable: p.current,
@@ -72,40 +67,72 @@ class HomePage extends StatelessWidget {
             }
             final artists = groups.entries.where((e) => e.value.length >= 2).toList()
               ..sort((a, b) => b.value.length.compareTo(a.value.length));
-            return ListView(padding: const EdgeInsets.all(20), children: [
+            final favs = Repo.i.favs.value;
+            final favourites = p.all.where((s) => favs.contains(s.id)).toList();
+            return ListView(padding: const EdgeInsets.fromLTRB(20, 14, 20, 28), children: [
               Row(children: [
-                Expanded(child: Text(greet, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800))),
+                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(greet, style: const TextStyle(color: textMuted, fontSize: 13, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 3),
+                  const Text('Your sound, your world.', style: TextStyle(fontSize: 25, letterSpacing: -.8, fontWeight: FontWeight.w900)),
+                ])),
                 IconButton(
+                  style: IconButton.styleFrom(backgroundColor: card),
                   icon: const Icon(Icons.settings_outlined),
                   onPressed: () => Navigator.push(c, MaterialPageRoute(builder: (_) => const SettingsPage())),
                 ),
               ]),
-              const SizedBox(height: 16),
+              const SizedBox(height: 22),
+              Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(color: accent.withOpacity(.22)),
+                  gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight,
+                    colors: [Color(0xFF211A35), Color(0xFF111019), Color(0xFF0A0A0E)]),
+                ),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Row(children: [
+                    const Icon(Icons.auto_awesome, color: accent, size: 18),
+                    const SizedBox(width: 7),
+                    const Text('TUNR INTELLIGENCE', style: TextStyle(color: accent, fontSize: 10, letterSpacing: 1.7, fontWeight: FontWeight.w800)),
+                    const Spacer(),
+                    Text('${p.all.length} tracks', style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                  ]),
+                  const SizedBox(height: 12),
+                  const Text('Find the feeling.\nWe’ll find the music.', style: TextStyle(fontSize: 22, height: 1.12, fontWeight: FontWeight.w800)),
+                  const SizedBox(height: 8),
+                  const Text('AI-crafted mixes and personal radio, built around your library.', style: TextStyle(color: Colors.white60, fontSize: 12, height: 1.4)),
+                  const SizedBox(height: 15),
+                  Row(children: [
+                    Expanded(child: FilledButton.icon(
+                      style: FilledButton.styleFrom(backgroundColor: accent, foregroundColor: const Color(0xFF100B1C)),
+                      onPressed: () => Navigator.push(c, MaterialPageRoute(builder: (_) => const AiCompanionPage())),
+                      icon: const Icon(Icons.auto_awesome, size: 17), label: const Text('Open companion'),
+                    )),
+                    const SizedBox(width: 9),
+                    IconButton.filledTonal(
+                      tooltip: 'Quick AI playlist',
+                      onPressed: () => showAiSheet(c),
+                      icon: const Icon(Icons.playlist_add),
+                    ),
+                  ]),
+                ]),
+              ),
+              const SizedBox(height: 14),
               Row(children: [
-                Expanded(
-                  child: FilledButton.icon(
-                    style: FilledButton.styleFrom(backgroundColor: accent, foregroundColor: Colors.black, padding: const EdgeInsets.symmetric(vertical: 14)),
-                    onPressed: p.shuffleAll,
-                    icon: const Icon(Icons.shuffle),
-                    label: Text('Shuffle (${p.all.length})'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: FilledButton.tonalIcon(
-                    style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
-                    onPressed: () => showAiSheet(c),
-                    icon: const Icon(Icons.auto_awesome),
-                    label: const Text('AI playlist'),
-                  ),
-                ),
+                Expanded(child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(foregroundColor: Colors.white, side: const BorderSide(color: outline), padding: const EdgeInsets.symmetric(vertical: 13)),
+                  onPressed: p.shuffleAll, icon: const Icon(Icons.shuffle, size: 18), label: Text('Shuffle all · ${p.all.length}'),
+                )),
               ]),
               ..._songRow('Jump back in', recent),
+              ..._songRow('Your favourites', favourites.take(15).toList()),
               ..._songRow('Recently added', added.take(15).toList()),
               if (artists.isNotEmpty) ...[
                 const SizedBox(height: 28),
                 const Text('Your artists', style: _h),
-                const SizedBox(height: 12),
+                const SizedBox(height: 13),
                 SizedBox(
                   height: 150,
                   child: ListView.separated(
@@ -116,15 +143,12 @@ class HomePage extends StatelessWidget {
                       final e = artists[i];
                       return GestureDetector(
                         onTap: () => p.play([...e.value]..shuffle(), 0),
-                        child: SizedBox(
-                          width: 100,
-                          child: Column(children: [
-                            Art(e.value.first, size: 100, r: 50),
-                            const SizedBox(height: 8),
-                            Text(e.key, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w600)),
-                            Text('${e.value.length} songs', style: const TextStyle(color: Colors.white54, fontSize: 12)),
-                          ]),
-                        ),
+                        child: SizedBox(width: 100, child: Column(children: [
+                          Art(e.value.first, size: 100, r: 50),
+                          const SizedBox(height: 8),
+                          Text(e.key, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700)),
+                          Text('${e.value.length} songs', style: const TextStyle(color: textMuted, fontSize: 11)),
+                        ])),
                       );
                     },
                   ),

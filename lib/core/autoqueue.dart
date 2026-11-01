@@ -17,26 +17,56 @@ class AutoQueue {
     return x != 'unknown artist' && similar.any((n) => x.contains(n) || n.contains(x));
   }
 
-  static List<SongModel> pick(SongModel cur, List<SongModel> all, Set<int> exclude, int n) {
+  static List<SongModel> pick(
+    SongModel cur,
+    List<SongModel> all,
+    Set<int> exclude,
+    int n, {
+    String mode = 'balanced',
+  }) {
     final now = DateTime.now().millisecondsSinceEpoch;
-    final curArtist = artistOf(cur);
+    final curArtist = artistOf(cur).toLowerCase();
     final scored = <MapEntry<SongModel, double>>[];
     for (final s in all) {
       if (exclude.contains(s.id)) continue;
-      final a = artistOf(s);
-      var sc = _r.nextDouble() * 2;
-      if (a != 'Unknown artist' && a == curArtist) sc += 5;
-      if (_isSimilar(a)) sc += 4;
-      if (s.genre != null && s.genre == cur.genre) sc += 3;
-      if (Repo.i.favs.value.contains(s.id)) sc += 1;
-      final st = Repo.i.stats[s.id];
-      if (st != null) {
-        sc += min(st.plays, 5) * 0.4 - st.skips * 1.5;
-        if (now - st.last < 3600000) sc -= 4;
+      final artist = artistOf(s);
+      final a = artist.toLowerCase();
+      final stat = Repo.i.stats[s.id];
+      var score = _r.nextDouble() * 1.2;
+      if (a == curArtist && a != 'unknown artist') score += mode == 'familiar' ? 6 : 2;
+      if (_isSimilar(artist)) score += mode == 'discover' ? 6 : 3;
+      if (s.genre != null && s.genre == cur.genre) score += 2;
+      if (Repo.i.favs.value.contains(s.id)) score += mode == 'familiar' ? 3 : 1.2;
+      if (stat != null) {
+        score += min(stat.plays, 5) * (mode == 'discover' ? .12 : .45);
+        score -= min(stat.skips, 8) * (mode == 'familiar' ? .55 : 1.1);
+        final age = now - stat.last;
+        if (age < 3600000) score -= mode == 'familiar' ? 1.5 : 4.5;
+        else if (age > const Duration(days: 30).inMilliseconds) score += mode == 'discover' ? 3 : 1.2;
+      } else {
+        score += mode == 'discover' ? 3.5 : 1;
       }
-      scored.add(MapEntry(s, sc));
+      scored.add(MapEntry(s, score));
     }
     scored.sort((a, b) => b.value.compareTo(a.value));
-    return scored.take(n).map((e) => e.key).toList();
+
+    // Greedy artist diversity: don't let one artist dominate a radio queue.
+    final selected = <SongModel>[];
+    final artistCounts = <String, int>{};
+    final deferred = <SongModel>[];
+    final perArtistLimit = mode == 'familiar' ? 3 : 2;
+    for (final entry in scored) {
+      final artist = artistOf(entry.key).toLowerCase();
+      final count = artistCounts[artist] ?? 0;
+      if (artist == 'unknown artist' || count < perArtistLimit) {
+        selected.add(entry.key);
+        artistCounts[artist] = count + 1;
+        if (selected.length >= n) break;
+      } else {
+        deferred.add(entry.key);
+      }
+    }
+    if (selected.length < n) selected.addAll(deferred.take(n - selected.length));
+    return selected;
   }
 }

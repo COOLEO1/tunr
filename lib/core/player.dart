@@ -64,17 +64,17 @@ class Player {
       );
 
   Future<void> play(List<SongModel> list, int index) async {
-    if (list.isEmpty) return;
+    if (list.isEmpty || index < 0 || index >= list.length) return;
     queue = [...list];
     _lastIdx = -1;
+    _extending = false;
     _src = ConcatenatingAudioSource(children: queue.map(_source).toList());
     await ap.setAudioSource(_src!, initialIndex: index);
     await ap.setShuffleModeEnabled(shuffle.value);
     await ap.setLoopMode(loop.value);
-    ap.play();
+    await ap.play();
   }
 
-  /// Spotify-style radio: start from one song, the rest is picked for you
   Future<void> radio(SongModel s) async {
     await AutoQueue.prepare(s);
     final more = AutoQueue.pick(s, all, {s.id}, 20);
@@ -102,7 +102,7 @@ class Player {
   }
 
   void _onIndex(int? idx) {
-    if (idx == null || idx >= queue.length) return;
+    if (idx == null || idx < 0 || idx >= queue.length) return;
     if (_lastIdx >= 0 && _lastIdx < queue.length && _lastIdx != idx) {
       final secs = DateTime.now().difference(_started).inSeconds;
       Repo.i.logPlay(queue[_lastIdx].id, skipped: secs < 20);
@@ -110,7 +110,9 @@ class Player {
     _lastIdx = idx;
     _started = DateTime.now();
     current.value = queue[idx];
-    Tint.of(queue[idx]).then((c) { if (c != null && current.value?.id == queue[idx].id) current.notifyListeners(); });
+    Tint.of(queue[idx]).then((c) {
+      if (c != null && current.value?.id == queue[idx].id) current.notifyListeners();
+    });
     _maybeExtend(idx);
   }
 
@@ -118,12 +120,18 @@ class Player {
     if (!autoQueue.value || loop.value != LoopMode.off || _extending || _src == null) return;
     if (idx < queue.length - 2) return;
     _extending = true;
-    await AutoQueue.prepare(queue[idx]);
-    final more = AutoQueue.pick(queue[idx], all, queue.map((s) => s.id).toSet(), 15);
-    if (more.isNotEmpty) {
-      queue = [...queue, ...more];
-      await _src!.addAll(more.map(_source).toList());
+    try {
+      final seed = queue[idx];
+      await AutoQueue.prepare(seed);
+      final more = AutoQueue.pick(seed, all, queue.map((s) => s.id).toSet(), 15);
+      if (more.isNotEmpty && _src != null) {
+        queue = [...queue, ...more];
+        await _src!.addAll(more.map(_source).toList());
+      }
+    } catch (e) {
+      debugPrint('Tunr auto-queue extension failed: $e');
+    } finally {
+      _extending = false;
     }
-    _extending = false;
   }
 }
