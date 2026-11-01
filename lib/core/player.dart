@@ -1,3 +1,4 @@
+import 'notif_art.dart';
 import 'tint.dart';
 import 'meta.dart';
 import 'dart:math';
@@ -31,6 +32,7 @@ class Player {
     if (!ok) ok = await _q.permissionsRequest();
     if (!ok) return false;
     await scan();
+    NotifArt.warm(all);
     ap.currentIndexStream.listen(_onIndex);
     return true;
   }
@@ -56,7 +58,7 @@ class Player {
           id: '${s.id}',
           title: cleanTitle(s),
           artist: artistOf(s),
-          album: s.album,
+          artUri: NotifArt.uriFor(s.id),
           duration: Duration(milliseconds: s.duration ?? 0),
         ),
       );

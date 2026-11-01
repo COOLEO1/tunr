@@ -14,6 +14,8 @@ class ArtStore {
   static Directory? _dir;
   static Future<void> _gate = Future.value();
 
+  static Future<Directory> dir() => _d();
+
   static Future<Directory> _d() async {
     if (_dir != null) return _dir!;
     final base = await getApplicationSupportDirectory();

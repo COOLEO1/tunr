@@ -25,4 +25,11 @@ os.makedirs('android/app/src/main/res/raw', exist_ok=True)
 open('android/app/src/main/res/raw/keep.xml', 'w').write(
     '<?xml version="1.0" encoding="utf-8"?>\n'
     '<resources xmlns:tools="http://schemas.android.com/tools" '
-    'tools:keep="@drawable/audio_service_*,@mipmap/*" />\n')
+    'tools:keep="@drawable/audio_service_*,@drawable/ic_notif,@mipmap/*" />\n')
+
+os.makedirs('android/app/src/main/res/drawable', exist_ok=True)
+open('android/app/src/main/res/drawable/ic_notif.xml', 'w').write('''<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+  <path android:fillColor="#FFFFFFFF" android:pathData="M12,3v10.55c-0.59,-0.34 -1.27,-0.55 -2,-0.55 -2.21,0 -4,1.79 -4,4s1.79,4 4,4 4,-1.79 4,-4V7h4V3h-6z"/>
+</vector>
+''')

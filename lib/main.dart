@@ -16,6 +16,8 @@ Future<void> main() async {
     androidNotificationChannelId: 'com.leon.tunr.audio',
     androidNotificationChannelName: 'Playback',
     androidNotificationOngoing: true,
+    androidNotificationIcon: 'drawable/ic_notif',
+    notificationColor: const Color(0xFF1DB954),
   );
   await Settings.load();
   await Repo.i.load();
