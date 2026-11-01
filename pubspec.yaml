@@ -1,0 +1,18 @@
+name: tunr
+description: My music player
+publish_to: none
+version: 1.0.0+1
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+dependencies:
+  flutter:
+    sdk: flutter
+  just_audio: ^0.9.40
+  just_audio_background: ^0.0.1-beta.11
+  on_audio_query: ^2.9.0
+  sqflite: ^2.3.3
+  path: ^1.9.0
+  http: ^1.2.2
+  shared_preferences: ^2.3.2
+flutter:
+  uses-material-design: true
