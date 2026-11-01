@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:on_audio_query/on_audio_query.dart';
 import '../core/player.dart';
 import '../core/meta.dart';
 import '../data/repo.dart';
