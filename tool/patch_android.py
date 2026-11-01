@@ -19,3 +19,10 @@ svc = '''<service android:name="com.ryanheise.audioservice.AudioService" android
 s = s.replace('</application>', svc, 1)
 open(p, 'w').write(s)
 s = open(p).read().replace('android:label="tunr"', 'android:label="Tunr"'); open(p, 'w').write(s)
+
+import os
+os.makedirs('android/app/src/main/res/raw', exist_ok=True)
+open('android/app/src/main/res/raw/keep.xml', 'w').write(
+    '<?xml version="1.0" encoding="utf-8"?>\n'
+    '<resources xmlns:tools="http://schemas.android.com/tools" '
+    'tools:keep="@drawable/audio_service_*,@mipmap/*" />\n')
