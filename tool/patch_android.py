@@ -18,3 +18,4 @@ svc = '''<service android:name="com.ryanheise.audioservice.AudioService" android
     </application>'''
 s = s.replace('</application>', svc, 1)
 open(p, 'w').write(s)
+s = open(p).read().replace('android:label="tunr"', 'android:label="Tunr"'); open(p, 'w').write(s)
