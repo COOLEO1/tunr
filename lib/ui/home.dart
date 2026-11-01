@@ -55,7 +55,7 @@ class HomePage extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: const Alignment(0, -.2),
-          colors: [accent.withOpacity(.30), bg],
+          colors: [accent.withOpacity(.22), bg],
         ),
       ),
       child: SafeArea(
@@ -84,7 +84,7 @@ class HomePage extends StatelessWidget {
               Row(children: [
                 Expanded(
                   child: FilledButton.icon(
-                    style: FilledButton.styleFrom(backgroundColor: accent, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 14)),
+                    style: FilledButton.styleFrom(backgroundColor: accent, foregroundColor: Colors.black, padding: const EdgeInsets.symmetric(vertical: 14)),
                     onPressed: p.shuffleAll,
                     icon: const Icon(Icons.shuffle),
                     label: Text('Shuffle (${p.all.length})'),

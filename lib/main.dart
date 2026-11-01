@@ -66,7 +66,7 @@ class _ShellState extends State<Shell> {
           const MiniPlayer(),
           NavigationBar(
             backgroundColor: bg,
-            indicatorColor: accent.withOpacity(.35),
+            indicatorColor: Colors.transparent,
             selectedIndex: tab,
             onDestinationSelected: (i) => setState(() => tab = i),
             destinations: const [

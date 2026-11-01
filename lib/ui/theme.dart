@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-const bg = Color(0xFF0B0B0F);
-const card = Color(0xFF17171D);
-const accent = Color(0xFF8B5CF6);
+const bg = Color(0xFF121212);
+const card = Color(0xFF1E1E1E);
+const accent = Color(0xFF1DB954);
 
 final appTheme = ThemeData(
   useMaterial3: true,
