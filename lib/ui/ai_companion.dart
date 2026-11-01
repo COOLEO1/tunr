@@ -4,6 +4,7 @@ import '../core/autoqueue.dart';
 import '../core/meta.dart';
 import '../core/player.dart';
 import '../core/settings.dart';
+import '../data/repo.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
@@ -51,7 +52,7 @@ class _AiCompanionPageState extends State<AiCompanionPage> {
     setState(() { _working = true; _message = null; });
     try {
       final seed = p.all.firstWhere(
-        (s) => RepoAccess.isFavourite(s.id),
+        (s) => Repo.i.favs.value.contains(s.id),
         orElse: () => p.current.value ?? p.all.first,
       );
       await AutoQueue.prepare(seed);
@@ -173,8 +174,4 @@ class _AiCompanionPageState extends State<AiCompanionPage> {
       ),
     );
   }
-}
-
-class RepoAccess {
-  static bool isFavourite(int id) => false;
 }
