@@ -14,11 +14,9 @@ jobs:
       - run: pip install pillow && python3 tool/make_icon.py
       - run: flutter pub get
       - run: dart run flutter_launcher_icons
-      - name: Patch plugin namespace
-        run: |
-          for f in $(find ~/.pub-cache -path '*on_audio_query*' -name build.gradle); do
-            grep -q namespace $f || sed -i "s/android {/android {\n    namespace 'com.lucasjosino.on_audio_query'/" $f
-          done
+      - name: Patch on_audio_query plugin
+        run: python3 tool/patch_plugin.py
+      - run: echo "kotlin.jvm.target.validation.mode=warning" >> android/gradle.properties
       - run: flutter build apk --release
       - uses: actions/upload-artifact@v4
         with: { name: tunr-apk, path: build/app/outputs/flutter-apk/app-release.apk }
