@@ -11,11 +11,15 @@ jobs:
         with: { channel: stable }
       - run: flutter create --platforms=android --org com.leon --project-name tunr .
       - run: python3 tool/patch_android.py
+      - run: pip install pillow && python3 tool/make_icon.py
       - run: flutter pub get
-      - name: Patch plugin namespace
+      - run: dart run flutter_launcher_icons
+      - name: Patch on_audio_query plugin
         run: |
           for f in $(find ~/.pub-cache -path '*on_audio_query*' -name build.gradle); do
             grep -q namespace $f || sed -i "s/android {/android {\n    namespace 'com.lucasjosino.on_audio_query'/" $f
+            sed -i -E "s/compileSdk(Version)?( *=)? *[0-9]+/compileSdkVersion 36/" $f
+            echo "--- $f"; grep -n "compileSdk\|namespace" $f
           done
       - run: echo "kotlin.jvm.target.validation.mode=warning" >> android/gradle.properties
       - run: flutter build apk --release
