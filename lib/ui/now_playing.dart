@@ -17,6 +17,38 @@ String fmt(Duration d) => '${d.inMinutes}:${(d.inSeconds % 60).toString().padLef
 class NowPlaying extends StatelessWidget {
   const NowPlaying({super.key});
 
+  void _showSleepTimer(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: card,
+      builder: (ctx) => SafeArea(
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          const Padding(
+            padding: EdgeInsets.fromLTRB(20, 18, 20, 10),
+            child: Align(alignment: Alignment.centerLeft, child: Text('Sleep timer', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800))),
+          ),
+          for (final minutes in [15, 30, 45, 60, 90, 120])
+            ListTile(
+              leading: const Icon(Icons.bedtime_outlined),
+              title: Text('Stop after $minutes minutes'),
+              onTap: () {
+                Player.i.startSleepTimer(Duration(minutes: minutes));
+                Navigator.pop(ctx);
+              },
+            ),
+          ListTile(
+            leading: const Icon(Icons.timer_off_outlined),
+            title: const Text('Turn timer off'),
+            onTap: () {
+              Player.i.cancelSleepTimer();
+              Navigator.pop(ctx);
+            },
+          ),
+        ]),
+      ),
+    );
+  }
+
   void _showQueue(BuildContext context) {
     final p = Player.i;
     showModalBottomSheet(
@@ -102,7 +134,17 @@ class NowPlaying extends StatelessWidget {
                       Text('NOW PLAYING', style: TextStyle(fontSize: 11, letterSpacing: 2, color: textMuted, fontWeight: FontWeight.w700)),
                       Text('YOUR LIBRARY', style: TextStyle(fontSize: 9, letterSpacing: 1.6, color: Colors.white38)),
                     ]),
-                    IconButton(icon: const Icon(Icons.more_horiz), onPressed: () => songMenu(c, s)),
+                    Row(mainAxisSize: MainAxisSize.min, children: [
+                      ValueListenableBuilder<int?>(
+                        valueListenable: p.sleepSeconds,
+                        builder: (_, seconds, __) => IconButton(
+                          tooltip: seconds == null ? 'Sleep timer' : 'Sleep timer: ${seconds ~/ 60}:${(seconds % 60).toString().padLeft(2, '0')}',
+                          icon: Icon(Icons.bedtime_outlined, color: seconds == null ? Colors.white70 : accent),
+                          onPressed: () => _showSleepTimer(c),
+                        ),
+                      ),
+                      IconButton(icon: const Icon(Icons.more_horiz), onPressed: () => songMenu(c, s)),
+                    ]),
                   ]),
                   Expanded(
                     child: ValueListenableBuilder<bool>(
@@ -217,6 +259,15 @@ class NowPlaying extends StatelessWidget {
                       builder: (_, on, __) => _BottomAction(icon: Icons.auto_awesome, label: 'Autoplay', active: on, onTap: () => p.autoQueue.value = !on),
                     ),
                     _BottomAction(icon: Icons.queue_music_rounded, label: 'Queue', onTap: () => _showQueue(c)),
+                    ValueListenableBuilder<int?>(
+                      valueListenable: p.sleepSeconds,
+                      builder: (_, seconds, __) => _BottomAction(
+                        icon: Icons.bedtime_outlined,
+                        label: seconds == null ? 'Sleep' : '${seconds ~/ 60}:${(seconds % 60).toString().padLeft(2, '0')}',
+                        active: seconds != null,
+                        onTap: () => _showSleepTimer(c),
+                      ),
+                    ),
                     _BottomAction(icon: Icons.playlist_add, label: 'Playlist', onTap: () => addToPlaylistDialog(c, s.id)),
                   ]),
                   const SizedBox(height: 8),
