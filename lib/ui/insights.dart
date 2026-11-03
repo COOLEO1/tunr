@@ -57,7 +57,7 @@ class _InsightsPageState extends State<InsightsPage> {
                   const Row(children: [Icon(Icons.headphones_rounded, color: accent), SizedBox(width: 8),
                     Text('TIME WELL SPENT', style: TextStyle(color: Colors.white70, fontSize: 10, letterSpacing: 1.7, fontWeight: FontWeight.w800))]),
                   const SizedBox(height: 12),
-                  Text(_durationLabel(repo.totalListeningMs), style: const TextStyle(fontSize: 38, fontWeight: FontWeight.w900, letterSpacing: -1.5)),
+                  Text(_durationLabel(repo.totalListeningMs + Player.i.activeListeningMs), style: const TextStyle(fontSize: 38, fontWeight: FontWeight.w900, letterSpacing: -1.5)),
                   const Text('Total listening time', style: TextStyle(color: textMuted)),
                   const SizedBox(height: 20),
                   Row(children: [

@@ -52,6 +52,7 @@ class Repo {
   Future<void> checkpointListeningSession(int id, int listenedMs) async {
     await (await Db.get()).update('listening_sessions', {'listened_ms': listenedMs},
       where: 'id=? AND ended_at IS NULL', whereArgs: [id]);
+    statsRevision.value++;
   }
 
   Future<void> finishListeningSession({

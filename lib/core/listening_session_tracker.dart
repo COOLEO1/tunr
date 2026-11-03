@@ -20,6 +20,8 @@ class ListeningSessionTracker {
   bool _completed = false;
   bool _disposed = false;
 
+  int get activeListeningMs => _listenedMs;
+
   Future<void> attach() async {
     _positionSub = player.positionStream.listen(_onPosition);
     _stateSub = player.playerStateStream.listen(_onPlayerState);
@@ -65,19 +67,23 @@ class ListeningSessionTracker {
     final id = _sessionId;
     if (id == null) return;
     _isPlaying = false;
+    final listened = _listenedMs;
+    final duration = _durationMs;
     final completed = _completed || reason == 'completed';
-    await Repo.i.finishListeningSession(
-      sessionId: id,
-      listenedMs: _listenedMs,
-      durationMs: _durationMs,
-      reason: reason,
-      completed: completed,
-      skipped: reason == 'track_changed' && !completed && _listenedMs < 30000,
-    );
+    final skipped = reason == 'track_changed' && !completed && listened < 30000;
+    // Clear the live value before the aggregate update notifies Insights.
     _sessionId = null;
     _listenedMs = 0;
     _durationMs = 0;
     _completed = false;
+    await Repo.i.finishListeningSession(
+      sessionId: id,
+      listenedMs: listened,
+      durationMs: duration,
+      reason: reason,
+      completed: completed,
+      skipped: skipped,
+    );
   }
 
   Future<void> dispose() async {

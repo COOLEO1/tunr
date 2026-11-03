@@ -17,6 +17,7 @@ class Player {
   Player._();
   final ap = AudioPlayer();
   late final ListeningSessionTracker _sessionTracker = ListeningSessionTracker(ap);
+  int get activeListeningMs => _sessionTracker.activeListeningMs;
   final _q = OnAudioQuery();
   List<SongModel> all = [];
   List<SongModel> queue = [];
