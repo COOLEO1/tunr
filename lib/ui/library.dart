@@ -61,7 +61,7 @@ class ArtistsTab extends StatelessWidget {
         ListTile(
           leading: Art(e.value.first, size: 50, r: 25),
           title: Text(e.key, maxLines: 1, overflow: TextOverflow.ellipsis),
-          subtitle: Text('\${e.value.length} songs'),
+          subtitle: Text('${e.value.length} songs'),
           trailing: const Icon(Icons.chevron_right, color: textMuted),
           onTap: () => Navigator.push(c, MaterialPageRoute(builder: (_) => CollectionPage(e.key, e.value))),
         ),
@@ -80,7 +80,7 @@ class AlbumsTab extends StatelessWidget {
         ListTile(
           leading: Art(e.value.first, size: 50, r: 7),
           title: Text(e.key, maxLines: 1, overflow: TextOverflow.ellipsis),
-          subtitle: Text('\${artistOf(e.value.first)} • \${e.value.length} songs'),
+          subtitle: Text('${artistOf(e.value.first)} • ${e.value.length} songs'),
           trailing: const Icon(Icons.chevron_right, color: textMuted),
           onTap: () => Navigator.push(c, MaterialPageRoute(builder: (_) => CollectionPage(e.key, e.value))),
         ),
@@ -127,8 +127,8 @@ class FavTab extends StatelessWidget {
 String _timeLabel(int ms) {
   final minutes = ms ~/ 60000;
   final hours = minutes ~/ 60;
-  if (hours > 0) return '\${hours}h \${minutes % 60}m';
-  return '\${minutes}m';
+  if (hours > 0) return '${hours}h ${minutes % 60}m';
+  return '${minutes}m';
 }
 
 class ListeningStatsPage extends StatelessWidget {
@@ -148,10 +148,10 @@ class ListeningStatsPage extends StatelessWidget {
           crossAxisSpacing: 10,
           childAspectRatio: 1.45,
           children: [
-            _StatCard(label: 'Tracks played', value: '\${repo.totalPlays}', icon: Icons.play_circle_outline),
+            _StatCard(label: 'Tracks played', value: '${repo.totalPlays}', icon: Icons.play_circle_outline),
             _StatCard(label: 'Listening time', value: _timeLabel(repo.totalListeningMs), icon: Icons.headphones),
-            _StatCard(label: 'Skipped tracks', value: '\${repo.totalSkips}', icon: Icons.skip_next),
-            _StatCard(label: 'Near-completions', value: '\${repo.completedTracks}', icon: Icons.check_circle_outline),
+            _StatCard(label: 'Skipped tracks', value: '${repo.totalSkips}', icon: Icons.skip_next),
+            _StatCard(label: 'Near-completions', value: '${repo.completedTracks}', icon: Icons.check_circle_outline),
           ],
         ),
         const SizedBox(height: 24),
@@ -161,10 +161,10 @@ class ListeningStatsPage extends StatelessWidget {
         for (var i = 0; i < top.length; i++)
           if (Player.i.byId(top[i].key) != null)
             ListTile(
-              leading: Text('\${i + 1}', style: const TextStyle(color: accent, fontWeight: FontWeight.w800)),
+              leading: Text('${i + 1}', style: const TextStyle(color: accent, fontWeight: FontWeight.w800)),
               title: Text(cleanTitle(Player.i.byId(top[i].key)!)),
               subtitle: Text(artistOf(Player.i.byId(top[i].key)!)),
-              trailing: Text('\${top[i].value.plays} plays', style: const TextStyle(color: textMuted)),
+              trailing: Text('${top[i].value.plays} plays', style: const TextStyle(color: textMuted)),
               onTap: () => Player.i.play([Player.i.byId(top[i].key)!], 0),
             ),
       ]),

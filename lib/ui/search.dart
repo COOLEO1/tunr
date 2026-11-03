@@ -107,13 +107,13 @@ class _SearchPageState extends State<SearchPage> {
                           ? ListView(children: artists.entries.map((e) => ListTile(
                               leading: Art(e.value.first, size: 48),
                               title: Text(e.key),
-                              subtitle: Text('\${e.value.length} tracks'),
+                              subtitle: Text('${e.value.length} tracks'),
                               onTap: () => Navigator.push(c, MaterialPageRoute(builder: (_) => SearchCollectionPage(e.key, e.value))),
                             )).toList())
                           : ListView(children: albums.entries.map((e) => ListTile(
                               leading: Art(e.value.first, size: 48),
                               title: Text(e.key),
-                              subtitle: Text('\${artistOf(e.value.first)} • \${e.value.length} tracks'),
+                              subtitle: Text('${artistOf(e.value.first)} • ${e.value.length} tracks'),
                               onTap: () => Navigator.push(c, MaterialPageRoute(builder: (_) => SearchCollectionPage(e.key, e.value))),
                             )).toList()),
         ),

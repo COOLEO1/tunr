@@ -79,7 +79,7 @@ class Player {
   AudioSource _source(SongModel s) => AudioSource.uri(
         Uri.parse(s.uri!),
         tag: MediaItem(
-          id: '\${s.id}',
+          id: '${s.id}',
           title: cleanTitle(s),
           artist: artistOf(s),
           artUri: NotifArt.uriFor(s.id),
@@ -113,7 +113,7 @@ class Player {
     if (prefs == null || queue.isEmpty) return;
     final index = ap.currentIndex ?? _lastIdx;
     if (index < 0 || index >= queue.length) return;
-    await prefs.setStringList('playback.queue', queue.map((s) => '\${s.id}').toList());
+    await prefs.setStringList('playback.queue', queue.map((s) => '${s.id}').toList());
     await prefs.setInt('playback.index', index);
     await prefs.setInt('playback.position', ap.position.inMilliseconds);
     await prefs.setBool('playback.shuffle', shuffle.value);
