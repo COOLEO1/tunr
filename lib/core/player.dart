@@ -9,12 +9,14 @@ import '../data/repo.dart';
 import 'autoqueue.dart';
 import 'meta.dart';
 import 'notif_art.dart';
+import 'listening_session_tracker.dart';
 import 'tint.dart';
 
 class Player {
   static final i = Player._();
   Player._();
   final ap = AudioPlayer();
+  late final ListeningSessionTracker _sessionTracker = ListeningSessionTracker(ap);
   final _q = OnAudioQuery();
   List<SongModel> all = [];
   List<SongModel> queue = [];
@@ -26,7 +28,6 @@ class Player {
   final sleepSeconds = ValueNotifier<int?>(null);
   ConcatenatingAudioSource? _src;
   int _lastIdx = -1;
-  DateTime _started = DateTime.now();
   bool _extending = false;
   Timer? _saveTimer;
   Timer? _sleepTimer;
@@ -40,11 +41,21 @@ class Player {
     await scan();
     NotifArt.warm(all);
     await _restoreQueue();
+    await _sessionTracker.attach();
     ap.currentIndexStream.listen((idx) {
       _onIndex(idx);
       _savePlayback();
     });
-    ap.playerStateStream.listen((_) => _savePlayback());
+    ap.playerStateStream.listen((state) {
+      _savePlayback();
+      if (state.processingState == ProcessingState.completed) {
+        _sessionTracker.finish('completed');
+      }
+    });
+    if (ap.currentIndex != null && ap.currentIndex! >= 0) {
+      _lastIdx = -1;
+      _onIndex(ap.currentIndex);
+    }
     _saveTimer = Timer.periodic(const Duration(seconds: 5), (_) => _savePlayback());
     return true;
   }
@@ -94,7 +105,6 @@ class Player {
     if (position > 0) await ap.seek(Duration(milliseconds: position), index: index);
     _lastIdx = index;
     current.value = queue[index];
-    _started = DateTime.now();
   }
 
   Future<void> _savePlayback() async {
@@ -173,22 +183,10 @@ class Player {
   }
 
   void _onIndex(int? idx) {
-    if (idx == null || idx < 0 || idx >= queue.length) return;
-    if (_lastIdx >= 0 && _lastIdx < queue.length && _lastIdx != idx) {
-      final previous = queue[_lastIdx];
-      final secs = DateTime.now().difference(_started).inSeconds;
-      final durationMs = secs * 1000;
-      final expected = previous.duration ?? 0;
-      Repo.i.logPlay(
-        previous.id,
-        skipped: secs < 20,
-        durationMs: durationMs,
-        completed: expected > 0 && durationMs >= expected * .8,
-      );
-    }
+    if (idx == null || idx < 0 || idx >= queue.length || idx == _lastIdx) return;
     _lastIdx = idx;
-    _started = DateTime.now();
     current.value = queue[idx];
+    unawaited(_sessionTracker.start(queue[idx]));
     Tint.of(queue[idx]).then((c) {
       if (c != null && current.value?.id == queue[idx].id) current.notifyListeners();
     });

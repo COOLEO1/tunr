@@ -4,6 +4,7 @@ import '../core/player.dart';
 import '../core/meta.dart';
 import '../data/repo.dart';
 import 'playlists.dart';
+import 'insights.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
@@ -15,7 +16,7 @@ class LibraryPage extends StatelessWidget {
     child: Scaffold(
       appBar: AppBar(
         title: const Text('Your Library', style: TextStyle(fontWeight: FontWeight.w800)),
-        actions: [IconButton(tooltip: 'Listening stats', icon: const Icon(Icons.insights_outlined), onPressed: () => Navigator.push(c, MaterialPageRoute(builder: (_) => const ListeningStatsPage())))],
+        actions: [IconButton(tooltip: 'Listening stats', icon: const Icon(Icons.insights_outlined), onPressed: () => Navigator.push(c, MaterialPageRoute(builder: (_) => const InsightsPage())))],
         bottom: const TabBar(
           isScrollable: true,
           indicatorColor: accent,

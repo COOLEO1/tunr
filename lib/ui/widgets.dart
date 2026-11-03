@@ -126,71 +126,80 @@ class MiniPlayer extends StatelessWidget {
   const MiniPlayer({super.key});
 
   @override
-  Widget build(BuildContext c) => ValueListenableBuilder<SongModel?>(
-        valueListenable: Player.i.current,
-        builder: (_, s, __) {
-          if (s == null) return const SizedBox.shrink();
-          return GestureDetector(
-            onTap: () => Navigator.push(
-              c,
-              PageRouteBuilder(
-                pageBuilder: (_, a, __) => const NowPlaying(),
-                transitionsBuilder: (_, a, __, child) => SlideTransition(
-                  position: Tween(begin: const Offset(0, 1), end: Offset.zero)
-                      .animate(CurvedAnimation(parent: a, curve: Curves.easeOutCubic)),
-                  child: child,
+  Widget build(BuildContext context) => ValueListenableBuilder<SongModel?>(
+    valueListenable: Player.i.current,
+    builder: (_, song, __) {
+      if (song == null) return const SizedBox.shrink();
+      return GestureDetector(
+        onTap: () => Navigator.push(context, PageRouteBuilder(
+          pageBuilder: (_, animation, __) => const NowPlaying(),
+          transitionsBuilder: (_, animation, __, child) => SlideTransition(
+            position: Tween(begin: const Offset(0, 1), end: Offset.zero)
+              .animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
+            child: child,
+          ),
+        )),
+        child: Container(
+          margin: const EdgeInsets.fromLTRB(12, 8, 12, 7),
+          padding: const EdgeInsets.fromLTRB(9, 9, 5, 6),
+          decoration: BoxDecoration(
+            color: cardRaised,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: accent.withOpacity(.22)),
+          ),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Row(children: [
+              Art(song, size: 43, r: 9),
+              const SizedBox(width: 11),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(cleanTitle(song), maxLines: 1, overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
+                const SizedBox(height: 2),
+                Text(artistOf(song), maxLines: 1, overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: textMuted, fontSize: 10)),
+              ])),
+              ValueListenableBuilder<Set<int>>(
+                valueListenable: Repo.i.favs,
+                builder: (_, favorites, __) => IconButton(
+                  visualDensity: VisualDensity.compact,
+                  icon: Icon(favorites.contains(song.id) ? Icons.favorite : Icons.favorite_border,
+                    color: favorites.contains(song.id) ? accent : textMuted, size: 20),
+                  onPressed: () => Repo.i.toggleFav(song.id),
                 ),
               ),
-            ),
-            child: Container(
-              margin: const EdgeInsets.fromLTRB(8, 0, 8, 6),
-              padding: const EdgeInsets.fromLTRB(8, 8, 4, 0),
-              decoration: BoxDecoration(color: tintFor(s), borderRadius: BorderRadius.circular(10)),
-              child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Row(children: [
-                  Art(s, size: 42, r: 5),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(cleanTitle(s),
-                          maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700)),
-                      Text(artistOf(s),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(color: Colors.white70, fontSize: 12)),
-                    ]),
+              StreamBuilder<bool>(
+                stream: Player.i.ap.playingStream,
+                builder: (_, snapshot) {
+                  final playing = snapshot.data ?? false;
+                  return IconButton(
+                    visualDensity: VisualDensity.compact,
+                    icon: Icon(playing ? Icons.pause_rounded : Icons.play_arrow_rounded, size: 27),
+                    onPressed: () => playing ? Player.i.ap.pause() : Player.i.ap.play(),
+                  );
+                },
+              ),
+            ]),
+            StreamBuilder<Duration>(
+              stream: Player.i.ap.positionStream,
+              builder: (_, snapshot) {
+                final duration = Player.i.ap.duration?.inMilliseconds ?? 1;
+                final position = snapshot.data?.inMilliseconds ?? 0;
+                return ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: (position / duration).clamp(0.0, 1.0).toDouble(),
+                    minHeight: 2,
+                    backgroundColor: Colors.white10,
+                    color: accent,
                   ),
-                  ValueListenableBuilder<Set<int>>(valueListenable: Repo.i.favs, builder: (_, f, __) => IconButton(icon: Icon(f.contains(s.id) ? Icons.favorite : Icons.favorite_border, color: f.contains(s.id) ? accent : Colors.white70), onPressed: () => Repo.i.toggleFav(s.id))),
-                  StreamBuilder<bool>(
-                    stream: Player.i.ap.playingStream,
-                    builder: (_, sn) {
-                      final pl = sn.data ?? false;
-                      return IconButton(
-                          icon: Icon(pl ? Icons.pause : Icons.play_arrow, size: 30),
-                          onPressed: () => pl ? Player.i.ap.pause() : Player.i.ap.play());
-                    },
-                  ),
-                ]),
-                const SizedBox(height: 6),
-                StreamBuilder<Duration>(
-                  stream: Player.i.ap.positionStream,
-                  builder: (_, sn) {
-                    final d = Player.i.ap.duration?.inMilliseconds ?? 1;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 4),
-                      child: LinearProgressIndicator(
-                          value: ((sn.data?.inMilliseconds ?? 0) / d).clamp(0.0, 1.0).toDouble(),
-                          minHeight: 2,
-                          backgroundColor: Colors.white12,
-                          color: Colors.white),
-                    );
-                  },
-                ),
-              ]),
+                );
+              },
             ),
-          );
-        },
+          ]),
+        ),
       );
+    },
+  );
 }
 
 class CachedArt extends StatelessWidget {
