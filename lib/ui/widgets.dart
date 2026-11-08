@@ -11,7 +11,8 @@ import 'playlists.dart';
 import 'theme.dart';
 
 Color tintFor(SongModel s) =>
-    Tint.peek(s) ?? HSLColor.fromAHSL(1, (s.title.hashCode.abs() % 360).toDouble(), .45, .22).toColor();
+    Color.lerp(Tint.peek(s) ?? const Color(0xFF32105A),
+        const Color(0xFF7900FF), .62)!;
 
 Widget fallbackArt(SongModel s) {
   final h = (s.title.hashCode.abs() % 360).toDouble();

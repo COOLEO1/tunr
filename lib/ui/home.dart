@@ -4,135 +4,225 @@ import '../core/meta.dart';
 import '../core/player.dart';
 import '../data/repo.dart';
 import 'ai_sheet.dart';
-import 'settings_page.dart';
 import 'theme.dart';
 import 'widgets.dart';
-
-const _h = TextStyle(fontSize: 20, fontWeight: FontWeight.w700);
-
-List<Widget> _songRow(String title, List<SongModel> list) {
-  if (list.isEmpty) return [];
-  return [
-    const SizedBox(height: 28),
-    Text(title, style: _h),
-    const SizedBox(height: 12),
-    SizedBox(
-      height: 190,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: list.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 14),
-        itemBuilder: (_, i) {
-          final s = list[i];
-          return GestureDetector(
-            onTap: () => Player.i.radio(s),
-            child: SizedBox(
-              width: 130,
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Art(s, size: 130, r: 10),
-                const SizedBox(height: 8),
-                Text(cleanTitle(s), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w600)),
-                Text(artistOf(s), maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white54, fontSize: 12)),
-              ]),
-            ),
-          );
-        },
-      ),
-    ),
-  ];
-}
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
+  Widget heading(String text, {String action = ''}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14, top: 25),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(text, style: const TextStyle(
+              fontSize: 19, fontWeight: FontWeight.w800,
+            )),
+          ),
+          if (action.isNotEmpty)
+            Text(action, style: const TextStyle(
+              color: accent, fontWeight: FontWeight.w600,
+            )),
+        ],
+      ),
+    );
+  }
+
+  Widget songCards(List<SongModel> songs) {
+    if (songs.isEmpty) {
+      return const Text('Add music to your device to get started.',
+          style: TextStyle(color: muted));
+    }
+    return SizedBox(
+      height: 205,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: songs.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 13),
+        itemBuilder: (_, i) {
+          final s = songs[i];
+          return GestureDetector(
+            onTap: () => Player.i.radio(s),
+            child: SizedBox(
+              width: 145,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Art(s, size: 145, r: 17),
+                        DecoratedBox(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(17),
+                            gradient: const LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [Colors.transparent, Color(0xBB080411)],
+                              stops: [.45, 1],
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          left: 10, right: 8, bottom: 10,
+                          child: Text(cleanTitle(s),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w800, fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(artistOf(s), maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: muted, fontSize: 12)),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext c) {
     final p = Player.i;
-    final h = DateTime.now().hour;
-    final greet = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+    final hour = DateTime.now().hour;
+    final greeting = hour < 12 ? 'Good morning' :
+        hour < 18 ? 'Good afternoon' : 'Good evening';
+
+    final recentEntries = Repo.i.stats.entries.toList()
+      ..sort((a, b) => b.value.last.compareTo(a.value.last));
+    final recent = recentEntries.take(12)
+      .map((e) => p.byId(e.key)).whereType<SongModel>().toList();
+
+    final added = [...p.all]
+      ..sort((a, b) => (b.dateAdded ?? 0).compareTo(a.dateAdded ?? 0));
+
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: const Alignment(0, -.2),
-          colors: [accent.withOpacity(.22), bg],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF290044), bg, bg],
+          stops: [0, .48, 1],
         ),
       ),
       child: SafeArea(
-        child: ValueListenableBuilder<SongModel?>(
-          valueListenable: p.current,
-          builder: (_, __, ___) {
-            final entries = Repo.i.stats.entries.toList()..sort((a, b) => b.value.last.compareTo(a.value.last));
-            final recent = entries.take(12).map((e) => p.byId(e.key)).whereType<SongModel>().toList();
-            final added = [...p.all]..sort((a, b) => (b.dateAdded ?? 0).compareTo(a.dateAdded ?? 0));
-            final groups = <String, List<SongModel>>{};
-            for (final s in p.all) {
-              final a = artistOf(s);
-              if (a != 'Unknown artist') groups.putIfAbsent(a, () => []).add(s);
-            }
-            final artists = groups.entries.where((e) => e.value.length >= 2).toList()
-              ..sort((a, b) => b.value.length.compareTo(a.value.length));
-            return ListView(padding: const EdgeInsets.all(20), children: [
-              Row(children: [
-                Expanded(child: Text(greet, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800))),
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(20, 15, 20, 28),
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.graphic_eq, color: accent, size: 30),
+                const SizedBox(width: 9),
+                const Text('TUNR', style: TextStyle(
+                  fontSize: 23, fontWeight: FontWeight.w900,
+                  letterSpacing: 2,
+                )),
+                const Spacer(),
                 IconButton(
-                  icon: const Icon(Icons.settings_outlined),
-                  onPressed: () => Navigator.push(c, MaterialPageRoute(builder: (_) => const SettingsPage())),
+                  onPressed: () => showAiSheet(c),
+                  icon: const Icon(Icons.auto_awesome, color: accent),
                 ),
-              ]),
-              const SizedBox(height: 16),
-              Row(children: [
-                Expanded(
-                  child: FilledButton.icon(
-                    style: FilledButton.styleFrom(backgroundColor: accent, foregroundColor: Colors.black, padding: const EdgeInsets.symmetric(vertical: 14)),
-                    onPressed: p.shuffleAll,
-                    icon: const Icon(Icons.shuffle),
-                    label: Text('Shuffle (${p.all.length})'),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Text(greeting, style: const TextStyle(
+              fontSize: 28, fontWeight: FontWeight.w900,
+            )),
+            const Text("Let's find your next favourite song.",
+              style: TextStyle(color: muted, fontSize: 14)),
+            const SizedBox(height: 22),
+            GestureDetector(
+              onTap: () => showAiSheet(c),
+              child: Container(
+                padding: const EdgeInsets.all(19),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(22),
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF8100F5), Color(0xFF35105D)],
                   ),
+                  boxShadow: [
+                    BoxShadow(color: purple.withOpacity(.25),
+                      blurRadius: 25, offset: const Offset(0, 9)),
+                  ],
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: FilledButton.tonalIcon(
-                    style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
-                    onPressed: () => showAiSheet(c),
-                    icon: const Icon(Icons.auto_awesome),
-                    label: const Text('AI playlist'),
+                child: const Row(
+                  children: [
+                    Icon(Icons.auto_awesome, size: 34),
+                    SizedBox(width: 14),
+                    Expanded(child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Your AI Music Companion',
+                          style: TextStyle(fontWeight: FontWeight.w800,
+                            fontSize: 15)),
+                        SizedBox(height: 5),
+                        Text('Create a playlist for any mood',
+                          style: TextStyle(color: Colors.white70,
+                            fontSize: 12)),
+                      ],
+                    )),
+                    Icon(Icons.arrow_forward_ios, size: 17),
+                  ],
+                ),
+              ),
+            ),
+            heading('Made for you'),
+            if (recent.isNotEmpty)
+              songCards(recent)
+            else
+              songCards(added.take(12).toList()),
+            heading('Recently added'),
+            songCards(added.take(15).toList()),
+            heading('Your music'),
+            Container(
+              decoration: BoxDecoration(
+                color: card.withOpacity(.9),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: accent.withOpacity(.13)),
+              ),
+              child: Column(children: [
+                ListTile(
+                  leading: const CircleAvatar(
+                    backgroundColor: Color(0xFF4B1282),
+                    child: Icon(Icons.music_note, color: Colors.white),
                   ),
+                  title: const Text('All songs',
+                    style: TextStyle(fontWeight: FontWeight.w700)),
+                  subtitle: Text('${p.all.length} songs'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => p.shuffleAll(),
                 ),
-              ]),
-              ..._songRow('Jump back in', recent),
-              ..._songRow('Recently added', added.take(15).toList()),
-              if (artists.isNotEmpty) ...[
-                const SizedBox(height: 28),
-                const Text('Your artists', style: _h),
-                const SizedBox(height: 12),
-                SizedBox(
-                  height: 150,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: artists.take(12).length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 16),
-                    itemBuilder: (_, i) {
-                      final e = artists[i];
-                      return GestureDetector(
-                        onTap: () => p.play([...e.value]..shuffle(), 0),
-                        child: SizedBox(
-                          width: 100,
-                          child: Column(children: [
-                            Art(e.value.first, size: 100, r: 50),
-                            const SizedBox(height: 8),
-                            Text(e.key, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w600)),
-                            Text('${e.value.length} songs', style: const TextStyle(color: Colors.white54, fontSize: 12)),
-                          ]),
-                        ),
-                      );
+                const Divider(height: 1, color: Colors.white10),
+                ValueListenableBuilder<Set<int>>(
+                  valueListenable: Repo.i.favs,
+                  builder: (_, f, __) => ListTile(
+                    leading: const CircleAvatar(
+                      backgroundColor: Color(0xFF4B1282),
+                      child: Icon(Icons.favorite, color: Colors.white),
+                    ),
+                    title: const Text('Liked songs',
+                      style: TextStyle(fontWeight: FontWeight.w700)),
+                    subtitle: Text('${f.length} songs'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      final songs = p.all.where((s) => f.contains(s.id)).toList();
+                      if (songs.isNotEmpty) p.play(songs, 0);
                     },
                   ),
                 ),
-              ],
-              const SizedBox(height: 20),
-            ]);
-          },
+              ]),
+            ),
+          ],
         ),
       ),
     );
