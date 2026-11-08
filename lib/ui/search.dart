@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:on_audio_query/on_audio_query.dart';
 import '../core/player.dart';
 import 'theme.dart';
 import 'widgets.dart';
@@ -15,7 +16,7 @@ class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext c) {
     final query = q.trim().toLowerCase();
-    final results = query.isEmpty ? [] : Player.i.all.where((s) {
+    final List<SongModel> results = query.isEmpty ? <SongModel>[] : Player.i.all.where((s) {
       return s.title.toLowerCase().contains(query) ||
         (s.artist ?? '').toLowerCase().contains(query) ||
         (s.album ?? '').toLowerCase().contains(query);
